@@ -1,0 +1,32 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+url = "https://www.imdb.com/chart/top/"
+headers = {"Accept-Language": "en-US,en;q=0.5"}
+
+response = requests.get(url, headers=headers)
+soup = BeautifulSoup(response.text, 'html.parser')
+
+movies = soup.select('td.titleColumn')
+ratings = soup.select('td.imdbRating')
+
+titles, years, scores = [], [], []
+
+for i in range(len(movies)):
+    title = movies[i].a.text
+    year = movies[i].span.text.strip('()')
+    rating = ratings[i].strong.text if ratings[i].strong else 'N/A'
+
+    titles.append(title)
+    years.append(year)
+    scores.append(rating)
+
+df = pd.DataFrame({
+    'Title': titles,
+    'Year': years,
+    'Rating': scores
+})
+
+df.to_csv('imdb_top_100.csv', index=False)
+print("IMDb data saved as csv.")
